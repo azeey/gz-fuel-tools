@@ -16,6 +16,7 @@
 */
 
 #include <curl/curl.h>
+#include <mutex>
 #ifdef _WIN32
 // DELETE is defined in winnt.h and causes a problem with HttpMethod::DELETE
 #undef DELETE
@@ -32,6 +33,8 @@
 
 using namespace ignition;
 using namespace fuel_tools;
+
+std::mutex curlMutex;
 
 // List of known file extensions and associated mime type.
 static const std::map<std::string, std::string> kContentTypes =
@@ -207,6 +210,7 @@ RestResponse Rest::Request(HttpMethod _method,
     const std::vector<std::string> &_headers, const std::string &_data,
     const std::multimap<std::string, std::string> &_form) const
 {
+  std::lock_guard<std::mutex> lock(curlMutex);
   RestResponse res;
 
   if (_url.empty())
